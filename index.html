@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Personal Finance Tracker</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #67adce;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .container {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #eff0f3;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  h1 {
+    text-align: center;
+  }
+  
+  .input-section {
+    margin-bottom: 20px;
+  }
+  
+  .input-section label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .input-section input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .input-section button {
+    background-color: #4CAF50;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .transactions ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .transactions li {
+    margin-bottom: 5px;
+  }
+  
+  .balance {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .balance p {
+    font-size: 20px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+  <h1>Personal Finance Tracker</h1>
+  <div class="container">
+    <div class="input-section">
+      <h2>Add Transaction</h2>
+      <label for="description">Description:</label>
+      <input type="text" id="description" placeholder="Enter description" />
+      <label for="amount">Amount:</label>
+      <input type="number" id="amount" placeholder="Enter amount" />
+      <button id="addBtn">Add</button>
+    </div>
+    <div class="transactions">
+      <h2>Transactions</h2>
+      <ul id="transactionList"></ul>
+    </div>
+    <div class="balance">
+      <h2>Current Balance:</h2>
+      <p id="balanceAmount">$0.00</p>
+    </div>
+  </div>
+
+  <script>
+   // Get the elements
+const descriptionInput = document.getElementById('description');
+const amountInput = document.getElementById('amount');
+const addBtn = document.getElementById('addBtn');
+const transactionList = document.getElementById('transactionList');
+const balanceAmount = document.getElementById('balanceAmount');
+
+let transactions = [];
+
+// Check if data exists in Local Storage
+const storedTransactions = localStorage.getItem('transactions');
+if (storedTransactions) {
+  transactions = JSON.parse(storedTransactions);
+}
+
+// Add a new transaction
+addBtn.addEventListener('click', () => {
+  const description = descriptionInput.value;
+  const amount = parseFloat(amountInput.value);
+
+  if (description.trim() === '' || isNaN(amount)) {
+    return;
+  }
+
+  const transaction = {
+    id: Date.now(),
+    description,
+    amount,
+  };
+
+  transactions.push(transaction);
+  saveTransactions();
+  displayTransactions();
+  updateBalance();
+  descriptionInput.value = '';
+  amountInput.value = '';
+});
+
+// Delete a transaction
+function deleteTransaction(id) {
+  transactions = transactions.filter((transaction) => transaction.id !== id);
+  saveTransactions();
+  displayTransactions();
+  updateBalance();
+}
+
+// Save transactions to Local Storage
+function saveTransactions() {
+  localStorage.setItem('transactions', JSON.stringify(transactions));
+}
+
+// Display transactions
+function displayTransactions() {
+  transactionList.innerHTML = '';
+
+  transactions.forEach((transaction) => {
+    const listItem = document.createElement('li');
+    listItem.innerHTML = `
+      <span>${transaction.description}</span>
+      <span class="${transaction.amount < 0 ? 'expense' : 'income'}">${formatAmount(transaction.amount)}</span>
+      <button class="deleteBtn" onclick="deleteTransaction(${transaction.id})">Delete</button>
+    `;
+    transactionList.appendChild(listItem);
+  });
+}
+
+// Update balance
+function updateBalance() {
+  const balance = transactions.reduce((acc, transaction) => acc + transaction.amount, 0);
+  balanceAmount.textContent = formatAmount(balance);
+}
+
+// Format amount with currency symbol
+function formatAmount(amount) {
+  return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+}
+
+// Initialize the application
+function init() {
+  displayTransactions();
+  updateBalance();
+}
+
+init();
+  </script>
+</body>
+</html>
